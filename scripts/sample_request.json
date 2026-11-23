@@ -1,0 +1,14 @@
+{
+  "neighbourhood": "Capitol Hill, Lincoln Park",
+  "room_type": "Entire home/apt",
+  "accommodates": 4,
+  "bedrooms": 2,
+  "beds": 2,
+  "bathrooms": 1,
+  "shared_bath": false,
+  "minimum_nights": 2,
+  "number_of_reviews": 25,
+  "review_scores_rating": 4.8,
+  "host_is_superhost": true,
+  "instant_bookable": false
+}
