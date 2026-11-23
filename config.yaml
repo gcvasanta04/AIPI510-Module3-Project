@@ -1,0 +1,82 @@
+# ---------------------------------------------------------------
+# Pipeline configuration. Every script reads this file; nothing
+# below should be hard-coded anywhere else.
+# ---------------------------------------------------------------
+
+project:
+  name: airbnb-dc-price
+  random_state: 42
+
+data:
+  # Inside Airbnb detailed listings for Washington, DC.
+  # Copy the current "listings.csv.gz" link from https://insideairbnb.com/get-the-data/
+  # (scroll to Washington, D.C.) and paste it here. The date in the path changes each scrape.
+  source_url: "https://data.insideairbnb.com/united-states/dc/washington-dc/2026-09-19/data/listings.csv.gz"
+  raw_path: data/raw/listings.csv.gz
+  clean_path: data/processed/listings_clean.csv
+
+  # Where the cleaned data lives in the cloud. Training always pulls from here
+  # when ingest.source == "s3".
+  s3:
+    bucket: "gcv4-airbnb-dc-price"   # bucket names are globally unique
+    key: processed/listings_clean.csv
+    region: us-east-1
+
+ingest:
+  source: s3          # "s3" (assignment requirement) or "local" (offline dev / tests)
+
+cleaning:
+  min_price: 20       # drop obvious placeholder prices
+  max_price: 1500     # drop extreme outliers (luxury / data-entry errors)
+  max_minimum_nights: 365
+  min_neighbourhood_count: 10   # neighborhoods rarer than this become "Other"
+
+features:
+  target: price
+  log_target: true    # train on log1p(price); prices are heavily right-skewed
+  numeric:
+    - accommodates
+    - bedrooms
+    - beds
+    - bathrooms
+    - minimum_nights
+    - number_of_reviews
+    - review_scores_rating
+  boolean:
+    - shared_bath
+    - host_is_superhost
+    - instant_bookable
+  categorical:
+    - room_type
+    - neighbourhood
+
+split:
+  test_size: 0.15
+  val_size: 0.15      # fraction of the full dataset
+
+model:
+  type: hist_gb       # one of: hist_gb | random_forest | ridge
+  params:
+    hist_gb:
+      learning_rate: 0.05
+      max_iter: 400
+      max_leaf_nodes: 31
+      min_samples_leaf: 20
+      l2_regularization: 0.0
+    random_forest:
+      n_estimators: 300
+      max_depth: 16
+      min_samples_leaf: 3
+      n_jobs: -1
+    ridge:
+      alpha: 1.0
+
+mlflow:
+  tracking_uri: sqlite:///mlflow.db   # local; view with `mlflow ui --backend-store-uri sqlite:///mlflow.db`
+  experiment_name: airbnb-dc-price
+
+output:
+  model_dir: models
+  model_file: model.joblib
+  metadata_file: metadata.json
+  interval_coverage: 0.8   # width of the price range the API returns (80% = 10th–90th pct)
