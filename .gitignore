@@ -1,0 +1,23 @@
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+.DS_Store
+
+# data lives in S3, not git
+data/raw/*
+data/processed/*
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+
+# MLflow local tracking
+mlruns/
+mlartifacts/
+mlflow.db
+
+# trained artifacts (rebuild with `python -m src.train`)
+models/*
+!models/.gitkeep
+
+.streamlit/secrets.toml
+.env
