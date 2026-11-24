@@ -1,0 +1,15 @@
+# Serving-only image for AWS Lambda. The trained model is baked in, so run
+# training first so that models/model.joblib and models/metadata.json exist.
+#
+# On an Apple Silicon Mac, build for Lambda's default x86_64 architecture:
+#   docker build --platform linux/amd64 --provenance=false -f Dockerfile.lambda -t airbnb-price-api .
+FROM public.ecr.aws/lambda/python:3.12
+
+COPY requirements-serve.txt .
+RUN pip install --no-cache-dir -r requirements-serve.txt
+
+COPY src/ ${LAMBDA_TASK_ROOT}/src/
+COPY models/model.joblib models/metadata.json ${LAMBDA_TASK_ROOT}/models/
+
+ENV MODEL_DIR=${LAMBDA_TASK_ROOT}/models
+CMD ["src.serve.app.handler"]
