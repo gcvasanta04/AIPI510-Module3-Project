@@ -9,3 +9,4 @@ mlartifacts
 mlflow.db
 .streamlit/secrets.toml
 .env
+venv/
